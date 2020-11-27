@@ -7,6 +7,13 @@ defmodule Posexional.File do
   defstruct rows: [],
             separator: "\n"
 
+  @type row :: any
+
+  @type t :: %{
+          rows: [row],
+          separator: String.t()
+        }
+
   def new(rows, separator \\ nil)
 
   def new(rows, nil) do
@@ -22,13 +29,13 @@ defmodule Posexional.File do
 
   ## Examples
 
-      iex> Posexional.File.write(
+      iex> write(
       ...>   Posexional.File.new([ Posexional.Row.new(:row_test, [ Posexional.Field.Value.new(:test1, 5) ]) ]),
       ...>   [row_test: [test1: "test"], row_test: [test1: "t"]]
       ...> )
       "test \\nt    "
 
-      iex> Posexional.File.write(
+      iex> write(
       ...>   Posexional.File.new([ Posexional.Row.new(:row_test, [ Posexional.Field.Value.new(:test1, 5) ]) ]),
       ...>   [row_test: [test1: "test"], ne: [test1: "t"]]
       ...> )
@@ -75,6 +82,39 @@ defmodule Posexional.File do
       end
     end)
   end
+
+  @spec stream(Enumerable.t(), t) :: Enumerable.t()
+  def stream(str, _file = %{separator: separator, rows: rows}) do
+    str
+    |> Stream.concat([separator])
+    |> Stream.transform("", &stream_reduce(&1, &2, separator))
+    |> Stream.reject(&match?("", &1))
+    |> Stream.flat_map(&to_rows(&1, rows))
+  end
+
+  def stream_reduce(bin, acc, separator) do
+    case String.split(acc <> bin, separator) do
+      [no_sep] -> {[], no_sep}
+      ps -> {but_last(ps), last(ps)}
+    end
+  end
+
+  defp last([p]), do: p
+  defp last([_ | ps]), do: last(ps)
+  defp last([]), do: nil
+
+  defp but_last([_]), do: []
+  defp but_last([p | ps]), do: [p | but_last(ps)]
+  defp but_last([]), do: nil
+
+  def to_rows(content, rows),
+    do: binary_to_rows(content, guess_row(content, rows))
+
+  def binary_to_rows(content, nil),
+    do: [content]
+
+  def binary_to_rows(content, row),
+    do: Row.read(row, content)
 
   @spec get_lines(%Posexional.File{}, Keyword.t()) :: Enumerable.t()
   defp get_lines(file, values) do

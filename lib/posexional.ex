@@ -43,4 +43,10 @@ defmodule Posexional do
     content = File.read!(path)
     read(file, content)
   end
+
+  def stream!(file, path) do
+    path
+    |> File.stream!()
+    |> Posexional.File.stream(file)
+  end
 end
