@@ -46,7 +46,7 @@ defmodule Posexional do
 
   def stream!(file, path) do
     path
-    |> File.stream!()
+    |> File.stream!([], 2048)
     |> Posexional.File.stream(file)
   end
 end
