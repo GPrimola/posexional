@@ -83,7 +83,7 @@ defmodule Posexional.File do
     end)
   end
 
-  @spec stream(Enumerable.t(), t) :: Enumerable.t()
+  @spec stream(Enumerable.t(), %Posexional.File{}) :: Enumerable.t()
   def stream(str, _file = %{separator: separator, rows: rows}) do
     str
     |> Stream.concat([separator])
