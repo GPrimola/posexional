@@ -44,7 +44,7 @@ defmodule Posexional do
     read(file, content)
   end
 
-  @spec read_file!(%Posexional.File{}, binary) :: any()
+  @spec stream!(%Posexional.File{}, binary) :: any()
   def stream!(file, path) do
     path
     |> File.stream!([], 2048)
